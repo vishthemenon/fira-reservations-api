@@ -48,7 +48,6 @@ r.connect({
 )
 
 app.get('/reservations', function(req, res){
-  const e = []
   r.table('reservations').run(connection, function(err, cursor) {
     cursor.toArray(function(err, result) {
       if (err) {
@@ -60,7 +59,20 @@ app.get('/reservations', function(req, res){
   })
 })
 
-app.post('/new', function(req, res) {
+app.get('/reservations/:restaurant_id', function(req, res){
+  console.log(req.params.restaurant_id)
+  r.table('reservations').filter({restaurant_id: parseInt(req.params.restaurant_id)}).run(connection, function(err, cursor) {
+    cursor.toArray(function(err, result) {
+      if (err) {
+        logError(err, res)
+        return next(err)
+      }
+      res.send(result)
+    })
+  })
+})
+
+app.post('/reservation/new', function(req, res) {
   // Validate request
   req.checkBody("customer_name"       , "Enter a valid user name."                ).isAlpha()
   req.checkBody("customer_id"         , "Enter a valid user id."                  ).isInt()
