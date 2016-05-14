@@ -110,6 +110,8 @@ app.post('/reservation/new', function(req, res) {
       }
       var restaurant_id = result[0].id
       var limit = result[0].reservation_limit
+      var reservation_opening_hour = result[0].reservation_opening_hour
+      var reservation_closing_hour = result[0].reservation_closing_hour
 
       console.log(restaurant_id)
       r.table('reservations')
@@ -124,9 +126,19 @@ app.post('/reservation/new', function(req, res) {
         console.log(r.time(year,month,day,hour,min-1,0,'+08:00'))
         console.log("Filled: " + filled)
         console.log("Limit " + limit)
-        console.log((filled+pax)>=limit)
-        if((filled+pax)>=limit){
+        console.log(time.getHours())
+        if((time.getHours() > reservation_closing_hour.getHours())||(time.getHours() < reservation_opening_hour.getHours())){
+          function formatter(num){
+            if(num<10) return ("0" + num).slice(-2)
+            return num
+          }
+          res.send("Please choose a slot between " + formatter(reservation_opening_hour.getHours()) + ":" + formatter(reservation_opening_hour.getMinutes())
+        + " and " + formatter(reservation_closing_hour.getHours()) + ":" + formatter(reservation_closing_hour.getMinutes()))
+          return
+        }
+        else if((filled+pax)>limit){
           res.send("This is reservation slot is full")
+          return
         }
         else {
           const j = {
