@@ -5,20 +5,20 @@
 # Schema
 ## Reservations
 ```
-user_id           : int
-user_name         : string
-phone_num         : int
-pax               : int
-restaurant_id     : int
-time              : Date
-notes             : string
+customer_id           : int
+customer_name         : string
+profile_pic           : string (url)
+pax                   : int
+restaurant_id         : int
+time                  : Date
+notes                 : string
 ```
 
 ## Settings
 ```
-restaurant_id     : int
-opening_hour      : Date
-closing_hour      : Date
-reservation_limit : int
-notes             : string
+restaurant_id         : int
+opening_hour          : Date
+closing_hour          : Date
+reservation_limit     : int
+notes                 : string
 ```

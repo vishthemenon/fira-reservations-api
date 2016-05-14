@@ -112,6 +112,32 @@ app.post('/reservation/new', function(req, res) {
   })
 })
 
+app.post('/settings', function(req, res){
+  req.checkBody("restaurant_id"       , "Enter a valid restaurant_id."              ).isAlpha()
+  req.checkBody("reservation_opening_hour"        , "Enter a valid opening hour."               ).isCoolTime()
+  req.checkBody("reservation_closing_hour"        , "Enter a valid closing hour."               ).isCoolTime()
+  req.checkBody("reservation_limit"   , "Enter a valid reservation limit."          ).isInt()
+  req.checkBody("note"                , "Enter a valid note."                       ).isAlphanumeric()
+  var reservation_opening_hour = new Date()
+  reservation_opening_hour.setHours(parseInt(req.body.reservation_opening_hour.split(":")[0]), parseInt(req.body.reservation_opening_hour.split(":")[1]), 0)
+  var reservation_closing_hour = new Date()
+  reservation_closing_hour.setHours(parseInt(req.body.reservation_closing_hour.split(":")[0]), parseInt(req.body.reservation_closing_hour.split(":")[1]), 0)
+
+  r.table("restaurants")
+  .get(req.body.restaurant_id)
+  .update({
+    reservation_opening_hour,
+    reservation_closing_hour
+  })
+  .run(connection, function(err) {
+    if (err) {
+      logError(err, res)
+      return
+    }
+    res.sendStatus(200)
+  })
+})
+
 app.listen(3000, function(err){
   if (err) {
     logError(err, res)
