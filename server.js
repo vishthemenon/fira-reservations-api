@@ -42,6 +42,19 @@ app.get('/reservations', function(req, res){
   })
 })
 
+app.post('/new', function(req, res){
+  r.table("reservations").insert({name:req.body.name,
+  phone:req.body.phone}).run(connection, function(err){
+    if (err) {
+      console.log(err)
+      res.send(err)
+    }
+    res.sendStatus(200)
+  })
+
+
+})
+
 app.listen(3000, function(err){
   if (err) throw err
   console.log("Cool yeah")
