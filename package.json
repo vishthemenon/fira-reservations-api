@@ -4,7 +4,7 @@
   "description": "Reservation api for fira",
   "main": "server.js",
   "scripts": {
-    "app": "node app.js",
+    "server": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
