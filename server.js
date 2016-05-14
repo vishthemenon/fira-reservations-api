@@ -61,7 +61,7 @@ app.get('/reservations', function(req, res){
 
 app.get('/reservations/:restaurant_id', function(req, res){
   console.log(req.params.restaurant_id)
-  r.table('reservations').filter({restaurant_id: parseInt(req.params.restaurant_id)}).run(connection, function(err, cursor) {
+  r.table('reservations').filter({restaurant_id: req.params.restaurant_id}).run(connection, function(err, cursor) {
     cursor.toArray(function(err, result) {
       if (err) {
         logError(err, res)
@@ -78,7 +78,7 @@ app.post('/reservation/new', function(req, res) {
   req.checkBody("customer_id"         , "Enter a valid user id."                  ).isInt()
   req.checkBody("customer_pic"        , "Enter a valid phone number."             ).isURL()
   req.checkBody("pax"                 , "Enter a valid number of pax reserving."  ).isInt()
-  req.checkBody("restaurant_id"       , "Enter a valid restaurant id."            ).isInt()
+  req.checkBody("page_id"             , "Enter a valid page id."            ).isInt()
   req.checkBody("date"                , "Enter a valid date of reservation"       ).isCoolDate()
   req.checkBody("time"                , "Enter a valid start time of reservation" ).isCoolTime()
   var err = req.validationErrors();
@@ -89,26 +89,69 @@ app.post('/reservation/new', function(req, res) {
 
   // JSON Parsing
   const customer_name = req.body.customer_name.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()})
-  const time = new Date(req.body.date + " " + req.body.time)
-  const j = {
-    customer_name,
-    customer_id: req.body.customer_id,
-    customer_pic: req.body.customer_pic,
-    pax: req.body.pax,
-    restaurant_id: req.body.restaurant_id,
-    time,
-    notes: req.body.notes
-  }
-  console.log(j)
-  //Send to rethinkdb
-  r.table("reservations")
-  .insert(j)
-  .run(connection, function(err) {
-    if (err) {
-      logError(err, res)
-      return
-    }
-    res.sendStatus(200)
+  var time = new Date(req.body.date + " " + req.body.time)
+  const pax  = req.body.pax
+
+  // Reservation validation
+  // const end_time = new Date(time.setHours(time.getHours()+1))
+  // time = new Date(req.body.date + " " + req.body.time)
+  const day = time.getDate()
+  const month = time.getMonth()+1
+  const year = time.getFullYear()
+  const hour = time.getHours()
+  const min = time.getMinutes()
+
+  r.table('restaurants')
+  .filter({pageId: req.body.page_id}).run(connection, function(err, cursor) {
+    cursor.toArray(function(err, result) {
+      if (err) {
+        logError(err, res)
+        return next(err)
+      }
+      var restaurant_id = result[0].id
+      var limit = result[0].reservation_limit
+
+      console.log(restaurant_id)
+      r.table('reservations')
+      .filter({restaurant_id: restaurant_id})
+      .filter(function(g) {
+        return g("time").lt(r.time(year,month,day,hour+1,min,0,'+08:00'))
+      }).filter(function(g) {
+        return g("time").gt(r.time(year,month,day,hour,min-1,0,'+08:00'))
+      }).count()
+      .run(connection, function(err, filled) {
+        console.log(r.time(year,month,day,hour+1,min,0,'+08:00'))
+        console.log(r.time(year,month,day,hour,min-1,0,'+08:00'))
+        console.log("Filled: " + filled)
+        console.log("Limit " + limit)
+        console.log((filled+pax)>=limit)
+        if((filled+pax)>=limit){
+          res.send("This is reservation slot is full")
+        }
+        else {
+          const j = {
+            customer_name,
+            customer_id: req.body.customer_id,
+            customer_pic: req.body.customer_pic,
+            pax,
+            restaurant_id: restaurant_id,
+            time,
+            notes: req.body.notes
+          }
+          console.log(j)
+          //Send to rethinkdb
+          r.table("reservations")
+          .insert(j)
+          .run(connection, function(err) {
+            if (err) {
+              logError(err, res)
+              return
+            }
+            res.sendStatus(200)
+          })
+        }
+      })
+    })
   })
 })
 
