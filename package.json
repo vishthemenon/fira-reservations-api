@@ -1,0 +1,22 @@
+{
+  "name": "reservation_api",
+  "version": "1.0.0",
+  "description": "Reservation api for fira",
+  "main": "server.js",
+  "scripts": {
+    "app": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/buglelabs/reservation_api.git"
+  },
+  "author": "Bugle Corps",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/buglelabs/reservation_api#readme",
+  "dependencies": {
+    "body-parser": "^1.15.1",
+    "express": "^4.13.4",
+    "rethinkdb": "^2.3.1"
+  }
+}
