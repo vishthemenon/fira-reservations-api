@@ -7,7 +7,7 @@
 ```
 customer_id           : string
 customer_name         : string
-profile_pic           : string (url)
+customer_pic          : string (url)
 pax                   : int
 restaurant_id         : string
 time                  : Date
