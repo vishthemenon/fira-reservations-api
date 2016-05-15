@@ -72,96 +72,135 @@ app.get('/reservations/:restaurant_id', function(req, res){
   })
 })
 
-app.post('/reservation/new', function(req, res) {
+app.post('/reservation/new', function(req, res){
   // Validate request
-  req.checkBody("customer_name"       , "Enter a valid user name."                ).isAlpha()
-  req.checkBody("customer_id"         , "Enter a valid user id."                  ).isInt()
-  req.checkBody("customer_pic"        , "Enter a valid phone number."             ).isURL()
   req.checkBody("pax"                 , "Enter a valid number of pax reserving."  ).isInt()
-  req.checkBody("page_id"             , "Enter a valid page id."            ).isInt()
-  req.checkBody("date"                , "Enter a valid date of reservation"       ).isCoolDate()
-  req.checkBody("time"                , "Enter a valid start time of reservation" ).isCoolTime()
+  req.checkBody("date"                 , "Enter a valid number of date reserving."  ).isInt()
+  req.checkBody("month"                 , "Enter a valid number of month reserving."  ).isInt()
+  req.checkBody("year"                 , "Enter a valid number of year reserving."  ).isInt()
+  req.checkBody("hour"                 , "Enter a valid number of hour reserving."  ).isInt()
+  req.checkBody("minute"                 , "Enter a valid number of minute reserving."  ).isInt()
   var err = req.validationErrors();
   if (err) {
     logError(err, res)
     return
   }
 
-  // JSON Parsing
+  r.table("pending_reservations")
+  .insert(req.body)
+  .run(connection, function(err) {
+    if (err) {
+      logError(err, res)
+      return
+    }
+    res.sendStatus(200)
+  })
+
+})
+
+app.post('/reservation/update', function(req, res) {
+  // Validate body
+  req.checkBody("customer_pic"          , "Enter a valid URL."             ).isURL()
+  var err = req.validationErrors();
+  if (err) {
+    logError(err, res)
+    return
+  }
+
+  const customer_id = req.body.customer_id
   const customer_name = req.body.customer_name.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()})
-  var time = new Date(req.body.date + " " + req.body.time)
-  const pax  = req.body.pax
+  const customer_pic = req.body.customer_pic
+  const page_id = req.body.page_id
 
-  // Reservation validation
-  // const end_time = new Date(time.setHours(time.getHours()+1))
-  // time = new Date(req.body.date + " " + req.body.time)
-  const day = time.getDate()
-  const month = time.getMonth()+1
-  const year = time.getFullYear()
-  const hour = time.getHours()
-  const min = time.getMinutes()
-
-  r.table('restaurants')
-  .filter({pageId: req.body.page_id}).run(connection, function(err, cursor) {
+  r.table('pending_reservations')
+  .filter({customer_id}).run(connection, function(err, cursor) {
     cursor.toArray(function(err, result) {
       if (err) {
         logError(err, res)
         return next(err)
       }
-      var restaurant_id = result[0].id
-      var limit = result[0].reservation_limit
-      var reservation_opening_hour = result[0].reservation_opening_hour
-      var reservation_closing_hour = result[0].reservation_closing_hour
+      // JSON Parsing
 
-      console.log(restaurant_id)
-      r.table('reservations')
-      .filter({restaurant_id: restaurant_id})
-      .filter(function(g) {
-        return g("time").lt(r.time(year,month,day,hour+1,min,0,'+08:00'))
-      }).filter(function(g) {
-        return g("time").gt(r.time(year,month,day,hour,min-1,0,'+08:00'))
-      }).count()
-      .run(connection, function(err, filled) {
-        console.log(r.time(year,month,day,hour+1,min,0,'+08:00'))
-        console.log(r.time(year,month,day,hour,min-1,0,'+08:00'))
-        console.log("Filled: " + filled)
-        console.log("Limit " + limit)
-        console.log(time.getHours())
-        if((time.getHours() > reservation_closing_hour.getHours())||(time.getHours() < reservation_opening_hour.getHours())){
-          function formatter(num){
-            if(num<10) return ("0" + num).slice(-2)
-            return num
+      // Reservation validation
+      result = result[0]
+      const pax  = result.pax
+      const day = result.date
+      const month = result.month+1
+      const year = 2016
+      const hour = result.hour
+      const min = result.minute
+      const notes = result.notes
+
+      r.table('pending_reservations')
+      .filter({customer_id}).delete().run(connection) 
+
+      var time = new Date(year + "-" + month + "-" + day + " " + hour + ":" + min)
+      console.log(time)
+      r.table('restaurants')
+      .filter({page_id}).run(connection, function(err, cursor) {
+        cursor.toArray(function(err, result) {
+          if (err) {
+            logError(err, res)
+            return next(err)
           }
-          res.send("Please choose a slot between " + formatter(reservation_opening_hour.getHours()) + ":" + formatter(reservation_opening_hour.getMinutes())
-        + " and " + formatter(reservation_closing_hour.getHours()) + ":" + formatter(reservation_closing_hour.getMinutes()))
-          return
-        }
-        else if((filled+pax)>limit){
-          res.send("This is reservation slot is full")
-          return
-        }
-        else {
-          const j = {
-            customer_name,
-            customer_id: req.body.customer_id,
-            customer_pic: req.body.customer_pic,
-            pax,
-            restaurant_id: restaurant_id,
-            time,
-            notes: req.body.notes
-          }
-          console.log(j)
-          //Send to rethinkdb
-          r.table("reservations")
-          .insert(j)
-          .run(connection, function(err) {
-            if (err) {
-              logError(err, res)
+
+          var restaurant_id = result[0].id
+          var limit = result[0].reservation_limit
+          var reservation_opening_hour = result[0].reservation_opening_hour
+          var reservation_closing_hour = result[0].reservation_closing_hour
+
+
+          console.log(restaurant_id)
+          r.table('reservations')
+          .filter({restaurant_id: restaurant_id})
+          .filter(function(g) {
+            return g("time").lt(r.time(year,month,day,hour+1,min,0,'+08:00'))
+          }).filter(function(g) {
+            return g("time").gt(r.time(year,month,day,hour,min-1,0,'+08:00'))
+          }).count()
+          .run(connection, function(err, filled) {
+            console.log(r.time(year,month,day,hour+1,min,0,'+08:00'))
+            console.log(r.time(year,month,day,hour,min-1,0,'+08:00'))
+            console.log("Filled: " + filled)
+            console.log("Limit " + limit)
+            console.log(time.getHours())
+            if((hour > reservation_closing_hour.getHours())||(hour < reservation_opening_hour.getHours())){
+              function formatter(num){
+                if(num<10) return ("0" + num).slice(-2)
+                return num
+              }
+              res.send("Please choose a slot between " + formatter(reservation_opening_hour.getHours()) + ":" + formatter(reservation_opening_hour.getMinutes())
+              + " and " + formatter(reservation_closing_hour.getHours()) + ":" + formatter(reservation_closing_hour.getMinutes()))
               return
             }
-            res.sendStatus(200)
+            else if((filled+pax)>limit){
+              res.send("This is reservation slot is full")
+              return
+            }
+            else {
+              const j = {
+                customer_name,
+                customer_id,
+                customer_pic,
+                pax,
+                restaurant_id,
+                time,
+                notes
+              }
+              console.log(j)
+              //Send to rethinkdb
+              r.table("reservations")
+              .insert(j)
+              .run(connection, function(err) {
+                if (err) {
+                  logError(err, res)
+                  return
+                }
+                res.sendStatus(200)
+              })
+            }
           })
-        }
+        })
       })
     })
   })
