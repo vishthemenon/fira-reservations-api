@@ -124,10 +124,11 @@ app.post('/reservation/update', function(req, res) {
       // Reservation validation
       result = result[0]
       if(result == undefined){
-        logError("Could not find valid reservation", res)
+        logError(result, res)
         return
       }
-      const pax  = result.pax
+      console.log(result)
+      const pax  = parseInt(result.pax)
       const day = result.date
       const month = result.month+1
       const year = 2016
@@ -152,17 +153,18 @@ app.post('/reservation/update', function(req, res) {
             logError(err, res)
             return next(err)
           }
-          if(!restaurant_id){
-            logError("Could not find valid reservation", res)
+          console.log(result[0])
+          if(result == undefined){
+            logError("Could not find valid reservation - restaurant_id undefined", res)
             return
           }
 
           var restaurant_id = result[0].id
           var limit = result[0].reservation_limit
-          var reservation_opening_hour = result[0].reservation_opening_hour.split(":")[0]
-          var reservation_opening_minute = result[0].reservation_opening_hour.split(":")[1]
-          var reservation_closing_hour = result[0].reservation_closing_hour.split(":")[0]
-          var reservation_closing_minute = result[0].reservation_closing_hour.split(":")[1]
+          var reservation_opening_hour = result[0].restaurant_opening_hour.split(":")[0]
+          var reservation_opening_minute = result[0].restaurant_opening_hour.split(":")[1]
+          var reservation_closing_hour = result[0].restaurant_closing_hour.split(":")[0]
+          var reservation_closing_minute = result[0].restaurant_closing_hour.split(":")[1]
 
 
           console.log(restaurant_id)
