@@ -123,6 +123,10 @@ app.post('/reservation/update', function(req, res) {
 
       // Reservation validation
       result = result[0]
+      if(result == undefined){
+        logError("Could not find valid reservation", res)
+        return
+      }
       const pax  = result.pax
       const day = result.date
       const month = result.month+1
@@ -132,7 +136,12 @@ app.post('/reservation/update', function(req, res) {
       const notes = result.notes
 
       r.table('pending_reservations')
-      .filter({customer_id}).delete().run(connection) 
+      .filter({customer_id}).delete().run(connection, function(err){
+        if (err) {
+          logError(err, res)
+          return next(err)
+        }
+      })
 
       var time = new Date(year + "-" + month + "-" + day + " " + hour + ":" + min)
       console.log(time)
@@ -142,6 +151,10 @@ app.post('/reservation/update', function(req, res) {
           if (err) {
             logError(err, res)
             return next(err)
+          }
+          if(!restaurant_id){
+            logError("Could not find valid reservation", res)
+            return
           }
 
           var restaurant_id = result[0].id
