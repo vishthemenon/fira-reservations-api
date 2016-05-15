@@ -36,7 +36,8 @@ notes                 : string
     "year"        :2016,
     "pax"         :"33",
     "notes"       :"BLAHDEEBLAH",
-    "customer_id" :"12345678"
+    "customer_id" :"12345678",
+    "ss_id"       :"asd"
 }
 ```
 ### Response
@@ -50,7 +51,8 @@ notes                 : string
   "customer_name": "vishnu",
   "customer_pic": "www.fb.com/img.png",
   "page_id": "401297586642494",
-  "customer_id": "12345678"
+  "customer_id": "12345678",
+  "ss_id"      : "asd"
 }
 ```
 ### Response
