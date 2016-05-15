@@ -5,18 +5,18 @@
 # Schema
 ## Reservations
 ```
-customer_id           : int
+customer_id           : string
 customer_name         : string
 profile_pic           : string (url)
 pax                   : int
-restaurant_id         : int
+restaurant_id         : string
 time                  : Date
 notes                 : string
 ```
 
 ## Settings
 ```
-restaurant_id         : int
+restaurant_id         : string
 opening_hour          : Date
 closing_hour          : Date
 reservation_limit     : int

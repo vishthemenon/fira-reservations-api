@@ -159,8 +159,10 @@ app.post('/reservation/update', function(req, res) {
 
           var restaurant_id = result[0].id
           var limit = result[0].reservation_limit
-          var reservation_opening_hour = result[0].reservation_opening_hour
-          var reservation_closing_hour = result[0].reservation_closing_hour
+          var reservation_opening_hour = result[0].reservation_opening_hour.split(":")[0]
+          var reservation_opening_minute = result[0].reservation_opening_hour.split(":")[1]
+          var reservation_closing_hour = result[0].reservation_closing_hour.split(":")[0]
+          var reservation_closing_minute = result[0].reservation_closing_hour.split(":")[1]
 
 
           console.log(restaurant_id)
@@ -177,13 +179,13 @@ app.post('/reservation/update', function(req, res) {
             console.log("Filled: " + filled)
             console.log("Limit " + limit)
             console.log(time.getHours())
-            if((hour > reservation_closing_hour.getHours())||(hour < reservation_opening_hour.getHours())){
+            if((hour > reservation_closing_hour)||(hour < reservation_opening_hour)){
               function formatter(num){
                 if(num<10) return ("0" + num).slice(-2)
                 return num
               }
-              res.send("Please choose a slot between " + formatter(reservation_opening_hour.getHours()) + ":" + formatter(reservation_opening_hour.getMinutes())
-              + " and " + formatter(reservation_closing_hour.getHours()) + ":" + formatter(reservation_closing_hour.getMinutes()))
+              res.send("Please choose a slot between " + formatter(reservation_opening_hour) + ":" + formatter(reservation_opening_minute)
+              + " and " + formatter(reservation_closing_hour) + ":" + formatter(reservation_closing_minute))
               return
             }
             else if((filled+pax)>limit){
@@ -225,10 +227,10 @@ app.post('/settings', function(req, res){
   req.checkBody("reservation_closing_hour"        , "Enter a valid closing hour."               ).isCoolTime()
   req.checkBody("reservation_limit"   , "Enter a valid reservation limit."          ).isInt()
   req.checkBody("note"                , "Enter a valid note."                       ).isAlphanumeric()
-  var reservation_opening_hour = new Date()
-  reservation_opening_hour.setHours(parseInt(req.body.reservation_opening_hour.split(":")[0]), parseInt(req.body.reservation_opening_hour.split(":")[1]), 0)
-  var reservation_closing_hour = new Date()
-  reservation_closing_hour.setHours(parseInt(req.body.reservation_closing_hour.split(":")[0]), parseInt(req.body.reservation_closing_hour.split(":")[1]), 0)
+  // var reservation_opening_hour = new Date()
+  // reservation_opening_hour.setHours(parseInt(req.body.reservation_opening_hour.split(":")[0]), parseInt(req.body.reservation_opening_hour.split(":")[1]), 0)
+  // var reservation_closing_hour = new Date()
+  // reservation_closing_hour.setHours(parseInt(req.body.reservation_closing_hour.split(":")[0]), parseInt(req.body.reservation_closing_hour.split(":")[1]), 0)
 
   r.table("restaurants")
   .get(req.body.restaurant_id)
