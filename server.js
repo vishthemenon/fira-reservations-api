@@ -108,12 +108,13 @@ app.post('/reservation/update', function(req, res) {
   }
 
   const customer_id = req.body.customer_id
+  const ss_id = req.body.ss_id
   const customer_name = req.body.customer_name.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()})
   const customer_pic = req.body.customer_pic
   const page_id = req.body.page_id
 
   r.table('pending_reservations')
-  .filter({customer_id}).run(connection, function(err, cursor) {
+  .filter({ss_id}).run(connection, function(err, cursor) {
     cursor.toArray(function(err, result) {
       if (err) {
         logError(err, res)
@@ -137,7 +138,7 @@ app.post('/reservation/update', function(req, res) {
       const notes = result.notes
 
       r.table('pending_reservations')
-      .filter({customer_id}).delete().run(connection, function(err){
+      .filter({ss_id}).delete().run(connection, function(err){
         if (err) {
           logError(err, res)
           return next(err)
@@ -145,7 +146,6 @@ app.post('/reservation/update', function(req, res) {
       })
 
       var time = new Date(year + "-" + month + "-" + day + " " + hour + ":" + min)
-      console.log(time)
       r.table('restaurants')
       .filter({page_id}).run(connection, function(err, cursor) {
         cursor.toArray(function(err, result) {
