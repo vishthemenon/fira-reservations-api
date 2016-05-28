@@ -132,7 +132,7 @@ app.post('/reservation/update', function(req, res) {
       const pax  = parseInt(result.pax)
       const day = result.date
       const month = result.month+1
-      const year = 2016
+      const year = result.year
       const hour = result.hour
       const min = result.minute
       const notes = result.notes
@@ -176,11 +176,11 @@ app.post('/reservation/update', function(req, res) {
             return g("time").gt(r.time(year,month,day,hour,min-1,0,'+08:00'))
           }).count()
           .run(connection, function(err, filled) {
-            console.log(r.time(year,month,day,hour+1,min,0,'+08:00'))
-            console.log(r.time(year,month,day,hour,min-1,0,'+08:00'))
+            // console.log(r.time(year,month,day,hour+1,min,0,'+08:00'))
+            // console.log(r.time(year,month,day,hour,min-1,0,'+08:00'))
             console.log("Filled: " + filled)
             console.log("Limit " + limit)
-            console.log(time.getHours())
+            // console.log(time.getHours())
             if((hour > reservation_closing_hour)||(hour < reservation_opening_hour)){
               function formatter(num){
                 if(num<10) return ("0" + num).slice(-2)
